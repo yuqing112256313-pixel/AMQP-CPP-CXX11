@@ -102,8 +102,8 @@ cd AMQP-CPP
 
 There are two methods to compile AMQP-CPP: CMake and Make. CMake is platform portable 
 and works on all systems, while the Makefile only works on Linux. The two methods 
-create both a shared and a static version of the AMQP-CPP library. Building of a
-shared library is currently not supported on Windows.
+can create either a shared or a static version of the AMQP-CPP library, depending
+on the selected build options and platform toolchain.
 
 AMQP-CPP comes with an optional Linux-only TCP module that takes care of the 
 network part required for the AMQP-CPP core library. If you use this module, you 
@@ -134,8 +134,26 @@ cmake --build . --target install
 
  Option                  | Default | Meaning
 -------------------------|---------|-----------------------------------------------------------------------
- AMQP-CPP_BUILD_SHARED   | OFF     | OFF for static lib, ON for shared lib. Shared is not supported on Windows.
+ AMQP-CPP_BUILD_SHARED   | OFF     | OFF for static lib, ON for shared lib.
  AMQP-CPP_LINUX_TCP      | OFF     | ON to build TCP module. TCP module is supported for Linux only.
+
+### Windows release package (`.dll + .lib + headers`)
+
+On Windows, shared-library delivery is typically:
+
+* `bin/amqpcpp.dll` (runtime)
+* `lib/amqpcpp.lib` (import library for linking)
+* `include/...` public headers
+
+This repository now supports packaging that layout via CPack:
+
+```powershell
+cmake -S . -B build -DAMQP-CPP_BUILD_SHARED=ON -DAMQP-CPP_LINUX_TCP=OFF
+cmake --build build --config Release
+cpack --config build/CPackConfig.cmake -C Release
+```
+
+The generated ZIP package is created in the `build/` directory.
 
 ## Using make
 
@@ -156,6 +174,22 @@ network connection yourself), run:
 make pure
 make install
 ```
+
+To build only the shared library and package it together with headers for distribution:
+
+```bash
+make package-shared
+```
+
+> **Platform note:** `make package-shared` is Linux-only and packages ELF shared objects (`.so`).
+> For Windows (`.dll + .lib`), use the CMake + CPack flow in the section above.
+
+This creates `dist/amqpcpp-<version>-shared.tar.gz` containing:
+
+* `include/amqpcpp.h`
+* `include/amqpcpp/*.h`
+* `include/amqpcpp/linux_tcp/*.h`
+* `lib/libamqpcpp.so.<version>` and symlinks `libamqpcpp.so.<soname>`, `libamqpcpp.so`
 
 ## Compiling a program
 
