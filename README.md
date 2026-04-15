@@ -608,6 +608,26 @@ channel.declareQueue("my-queue");
 channel.bindQueue("my-exchange", "my-queue", "my-routing-key");
 ````
 
+### Direct RabbitMQ client helper
+
+If you prefer using one object for both the TCP connection and default channel,
+you can use `AMQP::RabbitMQClient` from `amqpcpp/linux_tcp/rabbitmqclient.h`:
+
+````c++
+MyTcpHandler myHandler;
+AMQP::RabbitMQClient client(&myHandler, AMQP::Address("amqp://guest:guest@localhost/"));
+
+client.declareExchange("jobs", AMQP::direct, AMQP::durable);
+client.declareQueue("jobs.queue", AMQP::durable);
+client.bindQueue("jobs", "jobs.queue", "jobs.created");
+
+client.consume("jobs.queue", [](const AMQP::Message &message, uint64_t tag, bool redelivered) {
+    std::cout << "received: " << message.body() << std::endl;
+});
+
+client.publish("jobs", "jobs.created", "hello rabbitmq");
+````
+
 SECURE CONNECTIONS
 ==================
 [Back to Table of Contents](#table-of-contents)
