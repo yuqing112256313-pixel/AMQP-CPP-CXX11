@@ -97,7 +97,7 @@ if(AMQP-CPP_BUILD_SHARED)
     install(TARGETS ${PROJECT_NAME} EXPORT ${PROJECT_NAME}Config
             ARCHIVE DESTINATION lib
             LIBRARY DESTINATION lib
-            RUNTIME DESTINATION lib
+            RUNTIME DESTINATION bin
     )
 else()
     # copy static lib
@@ -133,3 +133,19 @@ if(AMQP-CPP_LINUX_TCP)
     find_package(OpenSSL REQUIRED)
     target_include_directories(${PROJECT_NAME} PRIVATE ${OPENSSL_INCLUDE_DIR})
 endif()
+
+# package generation (cpack)
+# ------------------------------------------------------------------------------------------------------
+set(CPACK_PACKAGE_NAME "amqpcpp")
+set(CPACK_PACKAGE_VENDOR "Copernica")
+set(CPACK_PACKAGE_VERSION_MAJOR "${VERSION_MAJOR}")
+set(CPACK_PACKAGE_VERSION_MINOR "${VERSION_MINOR}")
+set(CPACK_PACKAGE_VERSION_PATCH "${VERSION_PATCH}")
+
+if(WIN32)
+    set(CPACK_GENERATOR "ZIP")
+else()
+    set(CPACK_GENERATOR "TGZ")
+endif()
+
+include(CPack)

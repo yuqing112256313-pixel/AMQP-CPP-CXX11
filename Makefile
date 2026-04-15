@@ -1,6 +1,9 @@
 PREFIX                  ?= /usr
 INCLUDE_DIR             = ${PREFIX}/include
 LIBRARY_DIR             = ${PREFIX}/lib
+PACKAGE_DIR             ?= dist
+PACKAGE_ROOT            = $(LIBRARY_NAME)-$(VERSION)
+PACKAGE_NAME            = $(PACKAGE_ROOT)-shared.tar.gz
 export LIBRARY_NAME		= amqpcpp
 export SONAME			= 4.3
 export VERSION			= 4.3.19
@@ -20,8 +23,21 @@ static:
 shared:
 		$(MAKE) -C src shared
 
+package-shared: shared
+		mkdir -p $(PACKAGE_DIR)/$(PACKAGE_ROOT)/include/$(LIBRARY_NAME)/linux_tcp
+		mkdir -p $(PACKAGE_DIR)/$(PACKAGE_ROOT)/lib
+		cp -f include/$(LIBRARY_NAME).h $(PACKAGE_DIR)/$(PACKAGE_ROOT)/include
+		cp -f include/amqpcpp/*.h $(PACKAGE_DIR)/$(PACKAGE_ROOT)/include/$(LIBRARY_NAME)
+		cp -f include/amqpcpp/linux_tcp/*.h $(PACKAGE_DIR)/$(PACKAGE_ROOT)/include/$(LIBRARY_NAME)/linux_tcp
+		cp -f src/lib$(LIBRARY_NAME).so.$(VERSION) $(PACKAGE_DIR)/$(PACKAGE_ROOT)/lib
+		ln -s -f lib$(LIBRARY_NAME).so.$(VERSION) $(PACKAGE_DIR)/$(PACKAGE_ROOT)/lib/lib$(LIBRARY_NAME).so.$(SONAME)
+		ln -s -f lib$(LIBRARY_NAME).so.$(VERSION) $(PACKAGE_DIR)/$(PACKAGE_ROOT)/lib/lib$(LIBRARY_NAME).so
+		tar -czf $(PACKAGE_DIR)/$(PACKAGE_NAME) -C $(PACKAGE_DIR) $(PACKAGE_ROOT)
+		@echo "Shared package created: $(PACKAGE_DIR)/$(PACKAGE_NAME)"
+
 clean:
 		$(MAKE) -C src clean
+		$(RM) -r $(PACKAGE_DIR)
 
 install:
 		mkdir -p ${INCLUDE_DIR}/$(LIBRARY_NAME)
