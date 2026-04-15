@@ -83,6 +83,10 @@ if(AMQP-CPP_BUILD_SHARED)
     add_library(${PROJECT_NAME} SHARED ${src_MAIN} ${src_LINUX_TCP})
     # set shared lib version
     set_target_properties(${PROJECT_NAME} PROPERTIES SOVERSION ${SO_VERSION})
+    if(WIN32)
+        # ensure symbols are exported from the DLL and an import library is generated
+        set_target_properties(${PROJECT_NAME} PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)
+    endif()
 else()
     # create static lib
     #add_library(${PROJECT_NAME} STATIC ${SRCS})

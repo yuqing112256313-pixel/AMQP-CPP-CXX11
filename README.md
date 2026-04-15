@@ -142,8 +142,10 @@ cmake --build . --target install
 On Windows, shared-library delivery is typically:
 
 * `bin/amqpcpp.dll` (runtime)
-* `lib/amqpcpp.lib` (import library for linking)
+* `lib/amqpcpp.lib` (MSVC import library for linking)
 * `include/...` public headers
+
+If you use MinGW toolchains, the import library may be named `libamqpcpp.dll.a` instead of `.lib`.
 
 This repository now supports packaging that layout via CPack:
 
