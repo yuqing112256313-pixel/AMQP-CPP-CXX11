@@ -24,6 +24,10 @@ option(AMQP-CPP_BUILD_SHARED "Build shared library. If off, build will be static
 option(AMQP-CPP_LINUX_TCP "Build linux sockets implementation." OFF)
 option(AMQP-CPP_BUILD_EXAMPLES "Build amqpcpp examples" OFF)
 
+if(WIN32 AND AMQP-CPP_LINUX_TCP)
+    message(FATAL_ERROR "AMQP-CPP_LINUX_TCP requires a POSIX platform and cannot be enabled on Windows.")
+endif()
+
 # ensure c++11 on all compilers
 set (CMAKE_CXX_STANDARD 11)
 
@@ -51,11 +55,33 @@ macro (add_sources)
 endmacro()
 
 # add source files
-#add_subdirectory(src)
-aux_source_directory(src src_MAIN)
+file(GLOB src_MAIN CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
+set(src_LINUX_TCP)
 if(AMQP-CPP_LINUX_TCP)
-    #add_subdirectory(src/linux_tcp)
-    aux_source_directory(src/linux_tcp src_LINUX_TCP)
+    file(GLOB src_LINUX_TCP CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/src/linux_tcp/*.cpp")
+endif()
+
+file(GLOB AMQP_CPP_CORE_HEADERS CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/include/amqpcpp/*.h")
+list(REMOVE_ITEM AMQP_CPP_CORE_HEADERS "${CMAKE_CURRENT_SOURCE_DIR}/include/amqpcpp/linux_tcp.h")
+list(REMOVE_ITEM AMQP_CPP_CORE_HEADERS
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/amqpcpp/libboostasio.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/amqpcpp/libev.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/amqpcpp/libevent.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/amqpcpp/libuv.h"
+)
+
+set(AMQP_CPP_PLATFORM_ROOT_HEADERS)
+set(AMQP_CPP_PLATFORM_TCP_HEADERS)
+if(AMQP-CPP_LINUX_TCP)
+    list(APPEND AMQP_CPP_PLATFORM_ROOT_HEADERS "${CMAKE_CURRENT_SOURCE_DIR}/include/amqpcpp/linux_tcp.h")
+    list(APPEND AMQP_CPP_PLATFORM_ROOT_HEADERS
+        "${CMAKE_CURRENT_SOURCE_DIR}/include/amqpcpp/libboostasio.h"
+        "${CMAKE_CURRENT_SOURCE_DIR}/include/amqpcpp/libev.h"
+        "${CMAKE_CURRENT_SOURCE_DIR}/include/amqpcpp/libevent.h"
+        "${CMAKE_CURRENT_SOURCE_DIR}/include/amqpcpp/libuv.h"
+    )
+    file(GLOB AMQP_CPP_LINUX_TCP_HEADERS CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/include/amqpcpp/linux_tcp/*.h")
+    list(APPEND AMQP_CPP_PLATFORM_TCP_HEADERS ${AMQP_CPP_LINUX_TCP_HEADERS})
 endif()
 
 # potentially build the examples
@@ -111,8 +137,13 @@ else()
 endif()
 
 # copy header files
-install(DIRECTORY include/amqpcpp/ DESTINATION include/amqpcpp
-        FILES_MATCHING PATTERN "*.h")
+install(FILES ${AMQP_CPP_CORE_HEADERS} DESTINATION include/amqpcpp)
+if(AMQP_CPP_PLATFORM_ROOT_HEADERS)
+    install(FILES ${AMQP_CPP_PLATFORM_ROOT_HEADERS} DESTINATION include/amqpcpp)
+endif()
+if(AMQP_CPP_PLATFORM_TCP_HEADERS)
+    install(FILES ${AMQP_CPP_PLATFORM_TCP_HEADERS} DESTINATION include/amqpcpp/linux_tcp)
+endif()
 install(FILES include/amqpcpp.h DESTINATION include)
 
 install(EXPORT ${PROJECT_NAME}Config DESTINATION cmake)
