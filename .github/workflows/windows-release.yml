@@ -1,0 +1,36 @@
+name: Windows Release Package
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+      - main
+  pull_request:
+
+jobs:
+  build-windows-package:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure (Release shared build)
+        run: >
+          cmake -S . -B build
+          -DAMQP-CPP_BUILD_SHARED=ON
+          -DAMQP-CPP_LINUX_TCP=OFF
+
+      - name: Build
+        run: cmake --build build --config Release
+
+      - name: Package (ZIP via CPack)
+        run: cpack --config build/CPackConfig.cmake -C Release -B build/dist
+
+      - name: Upload ZIP artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: amqpcpp-windows-release
+          path: build/dist/*.zip
+          if-no-files-found: error
