@@ -22,7 +22,9 @@
 #include <vector>
 #include <queue>
 
+#if !defined(_WIN32)
 #include <sys/types.h> // TODO is this needed
+#endif
 
 #include <functional>
 #include <stdexcept>
@@ -100,5 +102,4 @@
 #include "basicframe.h"
 #include "confirmframe.h"
 #include "transactionframe.h"
-
 

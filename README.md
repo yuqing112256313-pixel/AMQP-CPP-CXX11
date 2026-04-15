@@ -132,6 +132,10 @@ cmake .. [-DAMQP-CPP_BUILD_SHARED=ON] [-DAMQP-CPP_LINUX_TCP=ON]
 cmake --build . --target install
 ```
 
+When `AMQP-CPP_LINUX_TCP=OFF`, the install/package output intentionally excludes
+`amqpcpp/linux_tcp.h` and `amqpcpp/linux_tcp/*.h`, so release artifacts only contain
+headers required by that platform profile.
+
  Option                  | Default | Meaning
 -------------------------|---------|-----------------------------------------------------------------------
  AMQP-CPP_BUILD_SHARED   | OFF     | OFF for static lib, ON for shared lib.
@@ -183,6 +187,13 @@ To build only the shared library and package it together with headers for distri
 make package-shared
 ```
 
+By default this includes Linux TCP headers on Linux/macOS hosts. You can force a
+core-only package (no `linux_tcp` headers) with:
+
+```bash
+make package-shared WITH_LINUX_TCP=0
+```
+
 > **Platform note:** `make package-shared` is Linux-only and packages ELF shared objects (`.so`).
 > For Windows (`.dll + .lib`), use the CMake + CPack flow in the section above.
 
@@ -190,7 +201,7 @@ This creates `dist/amqpcpp-<version>-shared.tar.gz` containing:
 
 * `include/amqpcpp.h`
 * `include/amqpcpp/*.h`
-* `include/amqpcpp/linux_tcp/*.h`
+* `include/amqpcpp/linux_tcp/*.h` (only when `WITH_LINUX_TCP=1`)
 * `lib/libamqpcpp.so.<version>` and symlinks `libamqpcpp.so.<soname>`, `libamqpcpp.so`
 
 ## Compiling a program
