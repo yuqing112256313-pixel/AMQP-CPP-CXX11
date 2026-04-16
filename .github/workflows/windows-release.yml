@@ -34,3 +34,22 @@ jobs:
           name: amqpcpp-windows-release
           path: build/dist/*.zip
           if-no-files-found: error
+
+      - name: Configure (Debug shared build)
+        run: >
+          cmake -S . -B build-debug
+          -DAMQP-CPP_BUILD_SHARED=ON
+          -DAMQP-CPP_LINUX_TCP=OFF
+
+      - name: Build (Debug)
+        run: cmake --build build-debug --config Debug
+
+      - name: Package Debug (ZIP via CPack)
+        run: cpack --config build-debug/CPackConfig.cmake -C Debug -B build-debug/dist
+
+      - name: Upload Debug ZIP artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: amqpcpp-windows-debug
+          path: build-debug/dist/*.zip
+          if-no-files-found: error
