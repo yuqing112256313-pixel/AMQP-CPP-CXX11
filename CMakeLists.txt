@@ -119,6 +119,8 @@ else()
     add_library(${PROJECT_NAME} STATIC ${src_MAIN} ${src_LINUX_TCP})
 endif()
 
+set_target_properties(${PROJECT_NAME} PROPERTIES DEBUG_POSTFIX "d")
+
 # install rules
 # ------------------------------------------------------------------------------------------------------
 
